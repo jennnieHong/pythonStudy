@@ -1890,7 +1890,7 @@ function selectTable(tbl, shouldScroll = true, openDrawerFlag = false) {{
           </td>
           <td style="padding: 10px 12px; color: var(--text-muted);">${{escHtml(dbComment)}}</td>
           <td style="padding: 6px 12px;">
-            <input type="text" value="${{escHtml(rel.description || '')}}" onchange="updateRelatedTableDesc('${{tbl.table_name}}', '${{rel.table_name}}', this.value)" style="width: 100%; padding: 4px 8px; border: 1px solid transparent; background: transparent; border-radius: 4px; font-size: 13px;" onfocus="this.style.border='1px solid var(--primary-accent)'; this.style.background='white';" onblur="this.style.border='1px solid transparent'; this.style.background='transparent';">
+            <textarea onchange="updateRelatedTableDesc('${{tbl.table_name}}', '${{rel.table_name}}', this.value)" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';" style="width: 100%; min-height: 38px; padding: 6px 8px; border: 1px solid transparent; background: transparent; border-radius: 4px; font-size: 12.5px; font-family: inherit; line-height: 1.45; resize: vertical; outline: none; box-sizing: border-box; display: block; overflow-y: hidden;" onfocus="this.style.border='1px solid var(--primary-accent)'; this.style.background='white';" onblur="this.style.border='1px solid transparent'; this.style.background='transparent';">${{escHtml(rel.description || '')}}</textarea>
           </td>
           <td style="padding: 10px 12px; text-align: center;">
             <button onclick="deleteRelatedTable('${{tbl.table_name}}', '${{rel.table_name}}')" style="background: #fee2e2; color: #ef4444; border: 1px solid #fecaca; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#fca5a5'" onmouseout="this.style.backgroundColor='#fee2e2'">삭제</button>
@@ -2077,6 +2077,12 @@ function selectTable(tbl, shouldScroll = true, openDrawerFlag = false) {{
   `;
   
   content.appendChild(detailCard);
+
+  // 관련 테이블 설명 칸 높이 자동 조절
+  detailCard.querySelectorAll("textarea").forEach(ta => {{
+    ta.style.height = 'auto';
+    ta.style.height = (ta.scrollHeight + 4) + 'px';
+  }});
 
   // 기본 Unique 인덱스 자동 선택란은 배 하이라이트 처리
   if (tbl.indexes.length > 0) {{
