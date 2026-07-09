@@ -99,6 +99,46 @@ def analyze_mappers(mapper_dir, table_names, is_batch):
                     pass
     return mapping
 
+def get_auto_relations(workspace_dir, table_names):
+    relations = {}
+    table_names_set = set(t.lower() for t in table_names)
+    
+    mapper_dirs = [
+        os.path.join(workspace_dir, "backoffice", "hyundai-backoffice-webapp", "src", "main", "resources", "sqlmapper"),
+        os.path.join(workspace_dir, "hyundai-batch", "batchServer", "src", "main", "resources", "mapper")
+    ]
+    
+    for mapper_dir in mapper_dirs:
+        if not os.path.exists(mapper_dir):
+            continue
+        for root, _, files in os.walk(mapper_dir):
+            for file in files:
+                if file.lower().endswith(".xml"):
+                    file_path = os.path.join(root, file)
+                    try:
+                        with open(file_path, "r", encoding="utf-8") as f:
+                            content = f.read()
+                        
+                        statements = re.findall(r'<(select|insert|update|delete)\s+[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)</\1>', content, re.IGNORECASE)
+                        for tag, stmt_id, sql_text in statements:
+                            sql_lower = sql_text.lower()
+                            words = set(re.findall(r'[a-z0-9_]+', sql_lower))
+                            found_tables = words.intersection(table_names_set)
+                            
+                            if len(found_tables) > 1:
+                                stmt_info = f"{file} ({stmt_id})"
+                                for t1 in found_tables:
+                                    for t2 in found_tables:
+                                        if t1 != t2:
+                                            if t1 not in relations:
+                                                relations[t1] = {}
+                                            if t2 not in relations[t1]:
+                                                relations[t1][t2] = set()
+                                            relations[t1][t2].add(stmt_info)
+                    except Exception:
+                        pass
+    return relations
+
 def main():
     print("Connecting to EDB PostgreSQL...")
     try:
@@ -224,6 +264,9 @@ def main():
     service_dir = os.path.join(workspace_dir, "hyundai-batch", "batchServer", "src", "main", "java", "com", "hyundai", "batch", "service")
     batch_names = parse_batch_names(service_dir)
 
+    print("Analyzing query-based related tables...")
+    auto_relations = get_auto_relations(workspace_dir, table_names)
+
     # Merge all into db_data
     print("Scanning markdown files for table and column relations...")
     qa_report_dir = r"D:\hmTest\backoffice\QaReport"
@@ -281,7 +324,7 @@ def main():
         tdata["color"] = "none"
         tdata["sort_order"] = 9999
         
-        tdata["related_tables"] = []
+        custom_related = []
         if tname in table_memos:
             tinfo = table_memos[tname]
             tdata["custom_memo"] = tinfo.get("memo", "")
@@ -292,7 +335,25 @@ def main():
             tdata["memo_r"] = tinfo.get("memo_r", "")
             tdata["starred"] = tinfo.get("starred", False)
             tdata["color"] = tinfo.get("color", "none")
-            tdata["related_tables"] = tinfo.get("related_tables", [])
+            custom_related = tinfo.get("related_tables", [])
+            
+            merged_relations = {}
+            for rel in custom_related:
+                if isinstance(rel, dict) and "table_name" in rel:
+                    merged_relations[rel["table_name"]] = rel.get("description", "")
+                elif isinstance(rel, str):
+                    merged_relations[rel] = ""
+                    
+            auto_list = auto_relations.get(tname, {})
+            for rel_tbl, stmt_set in auto_list.items():
+                if rel_tbl not in merged_relations:
+                    stmt_list = sorted(list(stmt_set))
+                    desc = f"[자동 분석] {', '.join(stmt_list[:2])} 등의 쿼리에서 공동 사용됨"
+                    merged_relations[rel_tbl] = desc
+                    
+            tdata["related_tables"] = [
+                {"table_name": k, "description": v} for k, v in sorted(merged_relations.items())
+            ]
             
             # sortOrder can be a string or number
             sort_order_val = tinfo.get("sortOrder", "9999")
@@ -328,6 +389,17 @@ def main():
                 col["custom_memo"] = ""
                 col["manual_guide"] = ""
                 col["guides"] = table_col_to_mds.get((tname.lower(), col["column_name"].lower()), [])
+                
+            merged_relations = {}
+            auto_list = auto_relations.get(tname, {})
+            for rel_tbl, stmt_set in auto_list.items():
+                stmt_list = sorted(list(stmt_set))
+                desc = f"[자동 분석] {', '.join(stmt_list[:2])} 등의 쿼리에서 공동 사용됨"
+                merged_relations[rel_tbl] = desc
+                
+            tdata["related_tables"] = [
+                {"table_name": k, "description": v} for k, v in sorted(merged_relations.items())
+            ]
 
     # Convert to sorted list
     table_list = [db_data[t] for t in sorted(db_data.keys())]
