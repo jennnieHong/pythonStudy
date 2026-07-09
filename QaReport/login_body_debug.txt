@@ -1,0 +1,20 @@
+HYUNDAI MOTORSTUDIO
+
+Welcome to the sales information system. This app is optimized for Chrome and Safari browsers.
+Build version : 202606231613
+
+Sales Information System.
+
+접속 중인 사용자 입니다.
+
+아이디 저장
+Sign in
+현재 접속 중이신 브라우저는 Chrome 입니다.
+
+Copyright© 2020. HYUNDAI. All Right Reserved
+
+×
+접속 중인 사용자 입니다.
+기존 접속을 종료 후 새로 로그인 하시겠습니까?
+확인
+취소

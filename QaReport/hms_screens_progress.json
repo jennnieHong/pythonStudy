@@ -1,0 +1,485 @@
+{
+  "screens": {
+    "hq_system_00001": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 웹 메뉴 권한 관리(웹메뉴별) (본사 권한으로 메뉴별 권한 지정 및 관리)"
+    },
+    "hq_system_00004": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - VAN사 정보 설정 (본사 권한으로 공통 VAN사 마스터 조회, 등록, 수정, 삭제 검증 완료)",
+      "qa_report": "D:\\hmTest\\backoffice\\QaReport\\hq_system_00004_QA리포트.md",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\hq_system_00004_TriggerDetail.md"
+    },
+    "hq_system_00005": {
+      "complete": true,
+      "memo": "로그인 ID: H1216020 - VAN 카드사 정보 등록관리 (본사 권한으로 VAN사별 카드사 정보 매핑 및 관리, E2E 검증 완료)",
+      "qa_report": "D:\\hmTest\\VAN 카드사 정보 등록관리\\hq_system_00005.md"
+    },
+    "hq_vendor_00004": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 본사 검수관리 (본사 권한으로 매장별 발주 건에 대해 검수 수량 입력/확정/취소 처리)\nshopadmin 20240201 입고상태를 1 -> 2 변경하는 화면 \n\n상태값변경\n관련 화면: 매입발주 등록 화면 (st_vendor_00001 - 발주등록)\n동작: 가맹점 사용자가 발주 내역을 저장(상태 '0')한 뒤, [발주확정] 버튼을 최종 클릭할 때 PROC_FG 상태값이 '1'(발주확정 / 검수대기)로 변경됩니다.\n\n **매입 전표(OBSLPHTB)**의 입고확정 상태와 **구매의뢰 전표(OBREQHTB)**의 발주취소 상태로 나누어집니다.\n\n1. 매입 전표 (OBSLPHTB / OBSLPDTB 테이블)\n이 테이블에서 PROC_FG = '4'는 입고확정(입고-본사확정) 상태를 의미하며, 다음 화면들에서 처리 시 '4'로 업데이트됩니다.\n\n매장 입고관리 (st_vendor_00004):\n매장에서 발주된 내역에 대해 입고를 최종 확정할 때, \n\nSt_Vendor_00004_Sql.xml\n의 confirmVendorOrderHd / confirmVendorOrderDt 쿼리를 통해 PROC_FG를 '4'로 변경합니다.\n본사 입고관리 (hq_vendor_00006):\n본사에서 매입처로부터 입고된 내역을 직접 최종 확정할 때, \n\nHq_Vendor_00006_Sql.xml\n의 confirmVendorSupplyHd / confirmVendorSupplyDt 쿼리를 통해 PROC_FG를 '4'로 변경합니다.\n매장 무발주 입고 (st_vendor_00006):\n발주 없이 매장에서 직접 입고를 등록하고 확정할 때, \n\nSt_Vendor_00006_Sql.xml\n의 updateConfirmHd / updateConfirmDt 쿼리를 통해 매입 상태(PROC_FG)가 바로 '4'로 등록/변경됩니다.\n본사 무발주 입고 (hq_vendor_00009):\n본사에서 발주 없이 바로 무발주 매입을 등록하고 확정할 때 상태값을 '4'로 변경합니다.\n\n재고 반영 메커니즘 (트리거 연쇄):\n전표의 상태가 '4'(입고확정)로 변경(DML UPDATE)되면, 데이터베이스의 OBSLPDTB 테이블에 설정된 **Tr_OBSLPD_T01 트리거 (또는 Java로 전환된 Tr_OBSLPD_T01_Service)**가 발동합니다.\n이 트리거 내부에서 PROC_FG = '4' 조건을 만족하게 되어, 가맹점 상품 마스터 테이블인 MGOODSTB의 현재고(CUR_QTY) 수량을 가산 업데이트하고 수불 이력 테이블(MMSLOGTB 등)에 변동 이력을 쌓는 연쇄 작용이 최종 실행됩니다."
+    },
+    "st_vendor_00002": {
+      "complete": true,
+      "memo": "로그인 ID: fnbcafe - 매장 검수관리 (개별 매장에서 검수 수량을 입력/확정/취소 처리)"
+    },
+    "st_vendor_00013": {
+      "complete": true,
+      "memo": "로그인 ID: fnbcafe - 매장 검수서 출력 (매장 권한으로 검수 완료된 전표에 대해 검수서 출력)"
+    },
+    "hq_vendor_00015": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 본사 검수서 출력 (본사 권한으로 매장별/거래처별 검수 내역에 대해 검수서 출력)"
+    },
+    "hq_system_00007": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 웹 메뉴 관리 (본사 권한으로 대/중/소 분류 및 메뉴 등록, 맵핑 관리)"
+    },
+    "admin_system_00007": {
+      "complete": true,
+      "memo": "로그인 ID: admin2 - 웹 메뉴 관리 (관리자 권한으로 대/중/소 분류 및 메뉴 등록, 맵핑 관리)"
+    },
+    "admin_system_00006": {
+      "complete": true,
+      "memo": "로그인 ID: admin2 - 사용자 보안정책 관리 (관리자 권한으로 사용자 보안정책 조회 및 저장 기능 E2E 검증 완료. SECURETB 테이블의 트리거/프로시저는 없으나, 레거시 F_PASSWORD_CHK 함수가 UserAuth_Sql.xml의 getPasswordChk 표준 SQL(REGEXP_COUNT 정규식) 쿼리로 안전하게 이관 대체되어 Hq_Emp_00002_Service 및 St_Emp_00002_Service 비밀번호 변경 기능과 연동됨을 확인.)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Admin_System_00006_DataFlow_Guide.md"
+    },
+    "hq_system_00006": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 본사 사용자 보안정책 (본사 권한으로 접근 시 화면 미존재 및 메뉴 매핑 부재로 인해 404 에러 페이지로 정상 리다이렉트 처리되는 보안 접근 제어 확인.)"
+    },
+    "hq_system_00008": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 명칭코드관리 (본사 권한으로 명칭코드 분류 및 상세코드 등록, 수정, 삭제)"
+    },
+    "admin_system_00008": {
+      "complete": true,
+      "memo": "로그인 ID: admin2 - 명칭코드관리 (관리자 권한으로 명칭코드 분류 및 상세코드 등록, 수정, 삭제)"
+    },
+    "hq_system_00009": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 로그인 이력 조회 (본사 권한으로 소속 체인 로그인 성공/실패 이력 조회)"
+    },
+    "admin_system_00009": {
+      "complete": true,
+      "memo": "로그인 ID: admin2 - 로그인 이력 조회 (관리자 권한으로 시스템 전체 로그인 성공/실패 이력 조회)"
+    },
+    "hq_cash_00003": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 계정별 전점현황 (본사 C001 권한으로 전 가맹점의 기간별 시재 금액 및 부가세 합계 현황 조회 검증 완료)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Cash_DataFlow_Guide.md"
+    },
+    "hq_vendor_00014": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 구매품의발주 현황 (본사 권한으로 체인 내 각 매장의 구매품의 및 발주 금액 현황 조회, 상세 내역 연동 완료)"
+    },
+    "st_vendor_00012": {
+      "complete": true,
+      "memo": "로그인 ID: fnbcafe - 구매품의발주 현황 (매장 권한으로 해당 가맹점의 구매품의 및 발주 금액 현황 조회, 상세 내역 연동 완료)"
+    },
+    "st_vendor_00009": {
+      "complete": true,
+      "memo": "로그인 ID: fnbcafe (조회/상세 조회 성공) & shopbrand (조회 성공 - 빈 데이터)"
+    },
+    "hq_master_00004": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 매장관리 (본사 권한으로 소속 가맹점 정보 조회, 수정 및 시스템/POS 환경 설정)"
+    },
+    "admin_master_00004": {
+      "complete": true,
+      "memo": "로그인 ID: admin2 - 매장관리 (관리자 권한으로 시스템 전체 가맹점 정보 조회, 수정 및 환경 설정)"
+    },
+    "hq_system_00011": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 웹 서비스 이벤트 로그 조회 (본사 권한으로 영업정보시스템 이벤트 로그 조회)"
+    },
+    "admin_system_00011": {
+      "complete": true,
+      "memo": "로그인 ID: admin2 - 웹 서비스 이벤트 로그 조회 (관리자 권한으로 영업정보시스템 이벤트 로그 조회)"
+    },
+    "hq_cash_00002": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 매장별 입출금현황 (본사 권한으로 매장별 입출금 요약 집계 및 상세 원장 내역 조회)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Cash_DataFlow_Guide.md"
+    },
+    "st_vendor_00006": {
+      "complete": true,
+      "memo": "로그인 ID: fnbcafe - 매장 무발주입고등록/취소 (매장 권한으로 발주 없이 거래처로부터 상품 직납 내역 수동 등록, 확정, 취소 및 실시간 매장 재고 반영)"
+    },
+    "hq_vendor_00009": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 본사 무발주입고등록/취소 (본사 권한으로 소속 체인 가맹점을 지정하여 무발주 매입 입고 등록, 확정, 취소 및 실시간 해당 매장 재고 반영)"
+    },
+    "st_vendor_00003": {
+      "complete": true,
+      "memo": "로그인 ID: fnbcafe - 매장 발주관리 (개별 매장 단위로 직접 등록 및 확정한 매입 발주 전표 데이터가 누적되는 화면. 원천 데이터는 매입발주 헤더(OBSLPHTB) 및 상세(OBSLPDTB) 테이블에 저장되며, 로그인한 매장코드(MS_NO) 및 발주 구분(SLIP_FG = '0') 기준으로 조회됩니다. 임시저장(PROC_FG = '0') 및 발주확정(PROC_FG = '1') 상태의 데이터가 누적 관리됩니다.)"
+    },
+    "hq_vendor_00005": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 본사 발주관리 (체인 내 모든 가맹점들이 등록하고 대기 중인 발주 전표 데이터가 누적되어 조회되는 화면. 매입발주 헤더(OBSLPHTB) 및 상세(OBSLPDTB) 중 발주 구분(SLIP_FG = '0')인 전표가 대상이며, 본사 관리자가 매장별 발주건을 확정 처리(PROC_FG 상태를 '1' 발주확정/검수대기로 변경)하기 위한 업무 데이터가 누적됩니다.)"
+    },
+    "hq_vendor_00007": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 본사 반품 관리 및 승인 (가맹점들이 st_vendor_00005 등에서 작성하고 최종 확정한 매입 반품 전표 데이터가 누적되는 화면. 매입발주 헤더(OBSLPHTB) 및 상세(OBSLPDTB) 테이블에서 반품 구분(SLIP_FG = '1') 및 가맹점 확정 상태(PROC_FG = '1')인 데이터가 누적 조회됩니다. 본사 관리자가 최종 승인 시 PROC_FG = '2'(반품승인) 상태로 누적 업데이트 처리됩니다.)"
+    },
+    "st_vendor_00005": {
+      "complete": true,
+      "memo": "로그인 ID: fnbcafe - 매장 반품등록 (개별 매장 단위로 거래처별 반품 대상 상품을 등록하고 확정하는 전표 데이터가 누적되는 화면. 매입발주 헤더(OBSLPHTB) 및 상세(OBSLPDTB) 중 반품 구분(SLIP_FG = '1') 전표가 대상이며, 해당 매장코드(MS_NO) 기준의 임시저장(PROC_FG = '0') 및 확정(PROC_FG = '1') 상태 데이터가 누적 관리됩니다.)"
+    },
+    "hq_vendor_00003": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 본사 발주전송관리 (가맹점들이 작성 및 최종 확정한 매입 발주 전표 데이터가 누적되어 조회되는 화면.\n\n* 조회 대상 누적 데이터 및 조인 관계:\n1) 매입발주 헤더(OBSLPHTB)의 발주 구분(SLIP_FG = '0'), 정규 발주(NO_ORDER_YN = 'N'), 확정 상태(PROC_FG = '1')인 데이터.\n2) 화면의 시작/종료일 검색 필터는 OBSLPHTB의 일자가 아니라, 구매의뢰 헤더(OBREQHTB) 테이블과 PURCH_REQ_NO 컬럼으로 조인하여 구매의뢰일자(OBREQHTB.REQ_DATE) 기준으로 매핑 필터링되므로 두 테이블 간의 관계가 정상 적재된 데이터만 노출됩니다.\n3) 협력업체(TVNDRMTB)의 이메일(E_MAIL) 주소 및 매장 마스터(MMEMBSTB) 정보가 체인번호(CHAIN_NO) 기준으로 아우터 조인됩니다.\n4) 본사 발송 처리 상태(OBSLPHTB.PURCH_SEND_YN)에 따라 미전송('N'), 전송성공('Y'/Tibero 메일큐 RTMS_MAILQUEUE 이관완료), 전송오류('E') 상태 데이터가 누적 이력으로 추적 관리됩니다.)"
+    },
+    "hq_vendor_00002": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 본사 발주품의작성 (가맹점들로부터 요청받은 구매의뢰 전표에 대해 본사 관리자가 단가/수량을 수정 및 저장하고, 품의 확정/취소 및 최종 발주 확정/취소를 수행하는 화면.\n\n* 조회 대상 누적 데이터 및 조인 관계:\n1) 구매의뢰 헤더(OBREQHTB) 및 상세(OBREQDTB) 테이블에서 진행 구분(proc_fg)에 따라 데이터가 누적 조회됩니다. (시작/종료 검색 필터는 OBREQHTB.REQ_DATE 기준)\n2) 본사 관리자가 발주 확정 처리 시, 구매의뢰 번호(PURCH_REQ_NO) 기준의 데이터가 매입발주 헤더(OBSLPHTB) 및 상세(OBSLPDTB) 테이블에 발주 구분(SLIP_FG = '0'), 확정 상태(PROC_FG = '1')로 신규 누적 적재됩니다.\n3) 발주 확정 단계에서 매입전표의 PROC_FG는 '1'(발주확정/검수대기)로 저장되며, 후행 트리거 서비스 Tr_OBSLPD_T01_Service가 기동하지만 수불 대상 상태('4' 또는 '5')가 아니기 때문에 수불 대장(IMTRLGTB) 및 변경 이력 로그(obslplog) 적재를 철저하게 차단하는 수불 배제 스펙이 구동됩니다.\n4) 본사 관리자가 발주 취소 시에는 누적 적재되었던 매입전표(OBSLPHTB/OBSLPDTB) 데이터가 DB에서 완전 삭제(Delete) 처리되고, OBREQHTB.proc_fg는 '2'(품의완료) 상태로 복구되어 이력이 누적 추적 관리됩니다.)"
+    },
+    "hq_vendor_00008": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 부대비용 등록관리 (본사 관리자 권한으로 입고확정('4') 또는 발주확정('3') 상태의 매입 전표에 대해 부대비용 금액을 입력하고 금액/수량 비율에 따라 자동 분배 적용하는 화면. RATIO_TO_REPORT 함수 호환성 결함을 val / NULLIF(SUM(val) OVER(), 0) 표준 나눗셈 식으로 패치하였으며, 부대비용 변경 시 진행상태(procFg)가 변동되지 않아 후행 트리거 서비스 Tr_OBSLPD_T01_Service에 의해 수불 및 로그 적재가 안전하게 배제되는 비즈니스 룰을 검증 완료하였습니다.)"
+    },
+    "st_emp_00002": {
+      "complete": true,
+      "memo": "로그인 ID: fnbcafe - 매장 비밀번호변경 (매장 권한으로 기존 비밀번호 검증 후 신규 비밀번호 변경 처리. Playwright E2E 동적 테스트를 통해 Bootbox Confirm 대화창 수락, 강제 패스워드 변경 모달 우회 및 EDB PostgreSQL DB의 패스워드 BCrypt 해시 변경 검증 완료. 테스트 후 DB 원천 데이터 원복 확인.)"
+    },
+    "hq_emp_00002": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 본사 비밀번호변경관리 (본사 권한으로 기존 비밀번호 검증 후 신규 비밀번호 변경 처리. Playwright E2E 동적 테스트를 통해 Bootbox Confirm 대화창 수락, 강제 패스워드 변경 모달 우회 및 EDB PostgreSQL DB의 패스워드 BCrypt 해시 변경 검증 완료. 테스트 후 DB 원천 데이터 원복 확인.)"
+    },
+    "st_emp_00001": {
+      "complete": true,
+      "memo": "로그인 ID: fnbcafe - 매장 사원관리 (매장 권한으로 신규 사원 등록, 아이디 중복체크, 상세 정보 수정 및 본인인증 비밀번호 검증 후 사원 삭제 E2E E2E 검증 완료. 자바 트리거 서비스에 의한 SSUSERTB 적재 및 MMSLOGTB 로깅 DB 정합성 완벽히 검증.)"
+    },
+    "hq_emp_00001": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 본사 사원관리 (본사 권한으로 본사/매장 사원 등록, 수정, 사원이동 및 메뉴 복사, 삭제 기능 E2E 검증 완료. 자바 트리거 서비스 연동 정합성 및 DB 로그 적재 검증.)"
+    },
+    "admin_emp_00001": {
+      "complete": true,
+      "memo": "로그인 ID: admin2 - 어드민 사원관리 (시스템 전체 어드민/일반 사원 등록, 수정, 삭제, 계정 잠금 해제 기능 E2E 검증 완료. DB 트리거 및 자바 트리거 연쇄 반응 완벽 검증.)"
+    },
+    "admin_sales_00005": {
+      "complete": true,
+      "memo": "로그인 ID: admin2 - POS 정산내역 (어드민 권한으로 체인 C001, 매장 NC0003의 2026-06-02 정산 내역 및 상세 정산 항목 모달 조회 완료)"
+    },
+    "hq_commu_00001": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 본사 공지사항 (본사 권한으로 체인공지/시스템공지 목록을 최신 생성일 순서(내림차순)로 정렬하여 조회 및 검색 검증 완료. 상세 팝업 오픈 시 조회수(HITS) 1 가산 및 BBSLOGTB 조회 로그 적재 확인.)"
+    },
+    "hq_commu_00002": {
+      "complete": true,
+      "memo": "로그인 ID: fnbadmin - 본사 공지사항 등록 관리 (본사 권한으로 공지사항 게시글 등록 시 summernote 본문 내 이미지 삽입(Base64 자동 변환) 및 다중 첨부파일 업로드 연동 버그(bootstrap-fileinput 배치 업로드 이벤트 누락) 패치 후 최종 E2E 검증 완료)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Hq_Commu_00002_QaReport.md"
+    },
+    "hq_sales_00021": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 본사 POS 정산내역 (본사 권한으로 체인 C001, 매장 NC0003의 2026-06-02 정산 내역 및 상세 정산 항목 모달 조회 완료)"
+    },
+    "hq_stock_00001": {
+      "complete": true,
+      "memo": "QA Report: Hq_Stock_00001 현재고 조회"
+    },
+    "hq_stock_00005": {
+      "complete": true,
+      "memo": "QA Report: Hq_Stock_00005 본사 재고 조정 등록"
+    },
+    "hq_stock_00007": {
+      "complete": true,
+      "memo": "* **매장 현재고 조회 (화면 ID: `st_stock_00007` / 권장 로그인 ID: `fnbcafe`)**: - QA Report: Hq_Stock_00007 본사 폐기등록"
+    },
+    "hq_stock_00008": {
+      "complete": true,
+      "memo": "QA Report: Hq_Stock_00008 본사 폐기현황 조회"
+    },
+    "hq_stock_00011": {
+      "complete": true,
+      "memo": "QA Report: Hq_Stock_00011 점간이동 등록/확정"
+    },
+    "hq_stock_00012": {
+      "complete": true,
+      "memo": "QA Report: Hq_Stock_00012 본사 점간이동 현황"
+    },
+    "hq_stock_00014": {
+      "complete": true,
+      "memo": "**테스트 ID/PW**: shopadmin / 0000 (ROLE_ADMIN, 본사 관리자) - QA Report: Hq_Stock_00014 월 마감내역 조회 (SELECT 전용)"
+    },
+    "hq_stock_00019": {
+      "complete": true,
+      "memo": "QA Report: Hq_Stock_00019 본사 현재고(매장합계)"
+    },
+    "hq_sysif_00002": {
+      "complete": true,
+      "memo": "QA Report: Hq_Sysif_00002 현금 시재 입출금 등록"
+    },
+    "hq_vendor_00001": {
+      "complete": true,
+      "memo": "Hq_Vendor_00001 (구매의뢰요청관리) 수동 QA 검증 보고서"
+    },
+    "hq_vendor_00010": {
+      "complete": true,
+      "memo": "QA Report: Hq_Vendor_00010 거래처별 발주 현황"
+    },
+    "hq_vendor_00011": {
+      "complete": true,
+      "memo": "QA Report: Hq_Vendor_00011 본사 거래처별 입고/반품 현황"
+    },
+    "hq_vendor_00013": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 본사 상품별 입고/반품 현황 (본사 권한으로 체인 내 가맹점 지정 혹은 전점의 상품별 입고 및 반품 처리 현황 집계 조회 및 상세 팝업 바인딩 검증 완료, NC0007 매장 데이터 18건 확인)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Vendor_11_13_DataFlow_Guide.md"
+    },
+    "hq_vendor_00017": {
+      "complete": true,
+      "memo": "QA Report: Hq_Vendor_00017 거래처별 입고집계표"
+    },
+    "hq_vendor_00019": {
+      "complete": true,
+      "memo": "QA Report: Hq_Vendor_00019 매장별 입고현황 (일자별 입고현황)"
+    },
+    "hq_vendor_00020": {
+      "complete": true,
+      "memo": "QA Report: Hq_Vendor_00020 상품별 입고현황"
+    },
+    "st_commu_00001": {
+      "complete": true,
+      "memo": "로그인 ID: fnbcafe - 매장 공지사항 (가맹점 권한으로 체인공지/시스템공지 목록을 최신 생성일 순서(내림차순)로 정렬하여 조회 및 검색 E2E 검증 완료. 상세 팝업 오픈 시 조회수(HITS) 1 가산 및 BBSLOGTB 조회 로그 적재 확인.)"
+    },
+    "st_master_00013": {
+      "complete": true,
+      "memo": "QA Report: St_Master_00013 거래처별 취급상품 조회"
+    },
+    "st_sales_00021": {
+      "complete": true,
+      "memo": "로그인 ID: shopbrand - 매장 POS 정산내역 (매장 권한으로 2026-06-02 정산 내역 및 상세 정산 항목 모달 조회 완료)"
+    },
+    "st_stock_00001": {
+      "complete": true,
+      "memo": "QA Report: St_Stock_00001 매장 재고 조정 등록"
+    },
+    "st_stock_00003": {
+      "complete": true,
+      "memo": "QA Report: St_Stock_00003 매장 폐기등록"
+    },
+    "st_stock_00004": {
+      "complete": true,
+      "memo": "QA Report: St_Stock_00004 매장 폐기현황 조회"
+    },
+    "st_stock_00007": {
+      "complete": true,
+      "memo": "QA Report: St_Stock_00007 매장 현재고 조회"
+    },
+    "st_stock_00011": {
+      "complete": true,
+      "memo": "QA Report: St_Stock_00011 매장 점간이동 현황"
+    },
+    "st_vendor_00001": {
+      "complete": true,
+      "memo": "QA Report: St_Vendor_00001 매장 구매요청관리"
+    },
+    "st_vendor_00007": {
+      "complete": true,
+      "memo": "QA Report: St_Vendor_00007 매장 거래처별 입고/반품 현황"
+    },
+    "st_vendor_00008": {
+      "complete": true,
+      "memo": "QA Report: St_Vendor_00008 거래처별 상품 입고현황"
+    },
+    "st_vendor_00010": {
+      "complete": true,
+      "memo": "QA Report: St_Vendor_00010 매장 전표별 입고/반품 현황"
+    },
+    "st_vendor_00011": {
+      "complete": true,
+      "memo": "로그인 ID: I000034a - 매장 상품별 입고/반품 현황 (매장 권한으로 가맹점 상품별 입고 및 반품 처리 실적 단순 조회 및 상세 내역 모달 팝업 바인딩 검증 완료)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Vendor_11_13_DataFlow_Guide.md"
+    },
+    "st_reserve_00001": {
+      "complete": true,
+      "memo": "**테스트 ID/PW**: H000051cafe / 0000 (ROLE_USER, CAFE 매장 - NC0007), I000034sb / 0000 (ROLE_USER, Shop 매장 - NC0022) - QA Report: St_Reserve_00001 예약일정관리"
+    },
+    "hq_cash_00004": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 월간지출계정관리 (본사 C001 권한으로 계정분류 및 상세코드 CUD 테스트 완료, 자바 트리거 서비스 Depth 3 연쇄 전파 및 감사로그 적재 정합성 검증 완료)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Cash_DataFlow_Guide.md"
+    },
+    "st_cash_00001": {
+      "complete": true,
+      "memo": "로그인 ID: I000034b - 입출금내역등록 (매장 NC0021 권한으로 기간 내 입출금 내역 신규 등록, 상세 정보 수정 및 삭제 처리 E2E 검증 완료)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Cash_DataFlow_Guide.md"
+    },
+    "hq_cash_00001": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 입출금계정관리 (본사 권한으로 입금/출금 코드 '99' 등록, 수정, 3단계 DB 트리거 연쇄작용 및 삭제 완료)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Cash_DataFlow_Guide.md"
+    },
+    "hq_esti_00007": {
+      "complete": true,
+      "memo": "로그인 ID: fnbadmin - 본사 견적현황 (본사 권한으로 체인 C002, 견적유형 001, 견적차수 0002 조건으로 견적 거래처별 단가 피벗 테이블 조회 및 검증 완료)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Hq_Esti_DataFlow_Guide.md"
+    },
+    "hq_esti_00002": {
+      "complete": true,
+      "memo": "로그인 ID: fnbadmin - 본사 견적서 양식작성 (본사 권한으로 체인 C002, 견적유형 001 조건으로 신규 양식 등록, 매핑 상품 추가/수량 수정 E2E 검증 완료. 자바 트리거 서비스에 의한 3단계 연쇄 삭제 확인.)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Hq_Esti_DataFlow_Guide.md",
+      "data_input": "D:\\hmTest\\backoffice\\QaReport\\hq_esti_00002_DataInput.md"
+    },
+    "hq_esti_00001": {
+      "complete": true,
+      "memo": "로그인 ID: fnbadmin - 본사 견적유형마스터 (본사 권한으로 체인 C002 조건으로 견적유형 신규 등록, 자동 채번, 유형별 대상 상품 개별/전체 매핑 및 삭제 E2E 검증 완료)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Hq_Esti_DataFlow_Guide.md"
+    },
+    "hq_esti_00008": {
+      "complete": true,
+      "memo": "로그인 ID: fnbadmin - 본사 계약이월 (본사 권한으로 특정 견적유형 및 견적양식의 적용기간 연장 및 가맹점 예정가 마스터 자동 전파 Depth 3 연쇄 검증 완료)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Hq_Esti_DataFlow_Guide.md",
+      "test_case": "D:\\hmTest\\backoffice\\Hq_Esti_00008_TestCase.md",
+      "qa_report": "D:\\hmTest\\backoffice\\QaReport\\hq_esti_00008_QaReport.md",
+      "data_input": "D:\\hmTest\\backoffice\\QaReport\\hq_esti_00008_DataInput.md"
+    },
+    "st_cash_00002": {
+      "complete": true,
+      "memo": "로그인 ID: I000034sb - 입출금내역현황 (매장 NC0022 권한으로 기간 내 시재 현황 조회, ApexCharts 그래프 연동 및 상세 내역 모달 팝업 바인딩 검증 완료)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Cash_DataFlow_Guide.md"
+    },
+    "st_cash_00003": {
+      "complete": true,
+      "memo": "로그인 ID: shopbrand - 월간지출내역조회 (매장 NC0003 권한으로 기간 내 지출 내역 합계 조회 및 상세 정보 모달 팝업 바인딩 검증 완료)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Cash_DataFlow_Guide.md"
+    },
+    "st_cash_00004": {
+      "complete": true,
+      "memo": "로그인 ID: shopbrand - 월간지출내역등록 (매장 NC0003 권한으로 기간 내 월간 지출 내역 신규 등록 및 삭제 처리 E2E 검증 완료)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Cash_DataFlow_Guide.md"
+    },
+    "hq_appr_00001": {
+      "complete": true,
+      "memo": "로그인 ID: fnbadmin - 본사 당일 승인현황 조회 완료 (영업일자 2026-06-02, 매장 NC0003 조회)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Sales_DataFlow_Guide.md"
+    },
+    "st_appr_00001": {
+      "complete": true,
+      "memo": "로그인 ID: I000034a - 매장 당일 승인현황 조회 완료 (영업일자 2026-06-02 조회)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Sales_DataFlow_Guide.md"
+    },
+    "hq_sales_00026": {
+      "complete": true,
+      "memo": "로그인 ID: fnbadmin - 본사 당일매출 조회 완료 (조회일자 2026-06-02, 매장 NC0003 조회)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Sales_DataFlow_Guide.md"
+    },
+    "st_sales_00026": {
+      "complete": true,
+      "memo": "로그인 ID: H1240961C - 매장 당일매출 조회 완료 (조회일자 2026-06-22 조회)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Sales_DataFlow_Guide.md"
+    },
+    "admin_sales_00002": {
+      "complete": true,
+      "memo": "로그인 ID: admin2 - 어드민 당일매출 조회 완료 (조회일자 2026-06-02, 매장 NC0003 조회)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Sales_DataFlow_Guide.md"
+    },
+    "hq_vendor_00016": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 의제매입 공제현황 (본사에서 가맹점별 의제매입 공제 대상 품목의 매입 및 공제 현황을 조회)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Fictitious_Vat_Calculation_Guide.md"
+    },
+    "st_vendor_00014": {
+      "complete": true,
+      "memo": "로그인 ID: I000311b - 의제매입 공제현황 (매장에서 해당 매장의 의제매입 공제 대상 품목의 매입 및 공제 현황을 조회)\n로그인 ID: I000034a - 의제매입 공제현황 (매장에서 해당 매장의 의제매입 공제 대상 품목의 매입 및 공제 현황을 조회)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Fictitious_Vat_Calculation_Guide.md"
+    },
+    "hq_cash_00005": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 월간지출내역현황 (지출 실적 집계 내역 조회 및 상세 트랜잭션 목록 모달 팝업 조회 검증 완료)",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Cash_DataFlow_Guide.md",
+      "data_input": "D:\\hmTest\\backoffice\\QaReport\\hq_cash_00005_DataInput.md"
+    },
+    "hq_vendor_00018": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 월단위 원가율 현황 (2026년 6월 기준 매장별 수불 실적 및 매출 대비 원가율 집계 조회 검증 완료)",
+      "test_case": "D:\\hmTest\\backoffice\\Hq_Vendor_00018_TestCase.md",
+      "qa_report": "D:\\hmTest\\backoffice\\QaReport\\hq_vendor_00018_QaReport.md",
+      "data_input": "D:\\hmTest\\backoffice\\QaReport\\hq_vendor_00018_DataInput.md"
+    },
+    "hq_stock_00013": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 선입선출 월마감 (2026년 6월 기준 본사 선입선출 마감 완료 및 중복 마감 예외 차단, 재마감(Redo)까지 E2E 완벽 검증)",
+      "test_case": "D:\\hmTest\\backoffice\\Hq_Stock_00013_TestCase.md",
+      "qa_report": "D:\\hmTest\\backoffice\\QaReport\\hq_stock_00013_QaReport.md",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\hq_stock_00013_DataFlow.md",
+      "data_input": "D:\\hmTest\\backoffice\\QaReport\\hq_stock_00013_DataInput.md"
+    },
+    "hq_esti_00005": {
+      "complete": true,
+      "memo": "로그인 ID: H1216020 - 견적서 업로드 관리 (본사 권한으로 거래처별 견적 대기 -> 접수 -> 확정 상태 변경 및 E2E 검증 완료)",
+      "test_case": "D:\\hmTest\\backoffice\\Hq_Esti_00005_TestCase.md",
+      "qa_report": "D:\\hmTest\\backoffice\\QaReport\\hq_esti_00005_QaReport.md"
+    },
+    "hq_sales_00005": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 대비기간매출 (본사 권한으로 전점의 조회기간 대비기간 순매출, 내장객, 객단가 비교 및 성장률 조회 E2E 검증 완료)",
+      "test_case": "D:\\hmTest\\backoffice\\Hq_Sales_00005_TestCase.md",
+      "qa_report": "D:\\hmTest\\backoffice\\QaReport\\hq_sales_00005_QaReport.md"
+    },
+    "st_sales_00005": {
+      "complete": true,
+      "memo": "로그인 ID: H1240961C - 대비기간매출 (매장 권한으로 해당 가맹점의 조회기간 대비기간 순매출, 내장객, 객단가 비교 및 성장률 조회 E2E 검증 완료)",
+      "test_case": "D:\\hmTest\\backoffice\\St_Sales_00005_TestCase.md",
+      "qa_report": "D:\\hmTest\\backoffice\\QaReport\\st_sales_00005_QaReport.md"
+    },
+    "hq_dashboard": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 대시보드 (본사) (로그인 성공 후 첫 진입 페이지로, 금일 매출 현황 및 상위 상품 판매 순위, 공지사항 목록 로드 확인)",
+      "test_case": "D:\\hmTest\\backoffice\\Hq_Dashboard_TestCase.md",
+      "qa_report": "D:\\hmTest\\backoffice\\QaReport\\hq_dashboard_QaReport.md",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\Hq_Dashboard_DataFlow_Guide.md",
+      "data_input": "D:\\hmTest\\backoffice\\QaReport\\Hq_Dashboard_DataInput.md"
+    },
+    "st_dashboard": {
+      "complete": true,
+      "memo": "로그인 ID: H1240961C - 대시보드 (매장) (로그인 성공 후 첫 진입 페이지로, 해당 가맹점 금일 매출 현황 및 상위 상품 판매 순위, 공지사항 목록 로드 확인)",
+      "test_case": "D:\\hmTest\\backoffice\\St_Dashboard_TestCase.md",
+      "qa_report": "D:\\hmTest\\backoffice\\QaReport\\st_dashboard_QaReport.md",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\St_Dashboard_DataFlow_Guide.md",
+      "data_input": "D:\\hmTest\\backoffice\\QaReport\\St_Dashboard_DataInput.md"
+    },
+    "admin_system_00012": {
+      "complete": true,
+      "memo": "로그인 ID: admin2 - 배치 로그 조회 (hmsfns.BATHRSTB 테이블 단순 조회, EDB Oracle 호환성 ROWNUM 이슈 확인, 성공여부 코드 0 매핑 수정 완료)",
+      "test_case": "D:\\hmTest\\backoffice\\Admin_System_00012_TestCase.md",
+      "qa_report": "D:\\hmTest\\backoffice\\QaReport\\admin_system_00012_QaReport.md"
+    },
+    "admin_system_00013": {
+      "complete": true,
+      "memo": "로그인 ID: admin2 - 배치 관리 (Quartz 크론 정보 조회 및 외부 배치 서버 API 연계 기동/중지 제어, Job Name 대소문자 매칭 버그 수정 완료)",
+      "test_case": "D:\\hmTest\\backoffice\\Admin_System_00013_TestCase.md",
+      "qa_report": "D:\\hmTest\\backoffice\\QaReport\\admin_system_00013_QaReport.md"
+    },
+    "admin_system_00014": {
+      "complete": true,
+      "memo": "로그인 ID: admin2 - 배치 실행내역 조회 (hmsfns.QRTZ_LOG 103만 건 실데이터 조회, Oracle 전용 문법 호환성 경고 및 Job Name 대소문자 매칭 조건 수정 완료)",
+      "test_case": "D:\\hmTest\\backoffice\\Admin_System_00014_TestCase.md",
+      "qa_report": "D:\\hmTest\\backoffice\\QaReport\\admin_system_00014_QaReport.md"
+    },
+    "hq_sales_00025": {
+      "complete": true,
+      "memo": "로그인 ID: shopadmin - 본사 외상 매출 및 입금내역조회 (STRNWETB 테이블 단순 조회, Oracle Outer Join (+) 및 SUBSTR 호환성 분석 완료)",
+      "test_case": "D:\\hmTest\\backoffice\\Hq_Sales_00025_TestCase.md",
+      "qa_report": "D:\\hmTest\\backoffice\\QaReport\\hq_sales_00025_QaReport.md",
+      "data_input": "D:\\hmTest\\backoffice\\Hq_Sales_00025_DataInput.md"
+    },
+    "st_sales_00025": {
+      "complete": true,
+      "memo": "로그인 ID: H000051cafe - 매장 외상 매출 및 입금내역조회 (STRNWETB 테이블 단순 조회, msNo 세션 바인딩 취약점 검증 완료)",
+      "test_case": "D:\\hmTest\\backoffice\\St_Sales_00025_TestCase.md",
+      "qa_report": "D:\\hmTest\\backoffice\\QaReport\\st_sales_00025_QaReport.md",
+      "data_input": "D:\\hmTest\\backoffice\\Hq_Sales_00025_DataInput.md"
+    },
+    "hq_sysif_00001": {
+      "complete": true,
+      "memo": "로그인 ID: 7249525SHOP - 일일 현금 시재관리 및 일 마감관리 (본사 정산 마감 내역 조회, 시재 조정 저장, 현장마감 및 전환된 Java 프로시저를 통한 ERP 전송까지 E2E 완료. TSM_TRAN_DTL 테이블의 numeric 컬럼(rcps_parr_rgn_seq)에 공백 문자열 ''을 인서트하던 EDB 마이그레이션 형변환 결함을 발견하여 NULL로 패치 완료.)",
+      "test_case": "D:\\hmTest\\backoffice\\Hq_Sysif_00001_TestCase.md",
+      "qa_report": "D:\\hmTest\\backoffice\\QaReport\\hq_sysif_00001_QaReport.md",
+      "data_flow": "D:\\hmTest\\backoffice\\QaReport\\hq_sysif_00001_ClosingConditions.md",
+      "data_input": "D:\\hmTest\\backoffice\\QaReport\\hq_sysif_00001_DataInput.md"
+    }
+  }
+}

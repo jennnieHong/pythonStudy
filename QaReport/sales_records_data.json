@@ -1,0 +1,58 @@
+[
+  {
+    "sale_date": "20260602",
+    "ms_no": "NC0003",
+    "pos_no": "01",
+    "bill_no": "0001",
+    "sale_fg": "0",
+    "sale_dtime": "20260602165154",
+    "cash_remnant": 0.0,
+    "card_amt": 0.0,
+    "sale_vat": 0.0,
+    "sale_tot": 460000.0,
+    "sale_amt": 460000.0,
+    "dc_amt": 0.0
+  },
+  {
+    "sale_date": "20260602",
+    "ms_no": "NC0003",
+    "pos_no": "01",
+    "bill_no": "0002",
+    "sale_fg": "1",
+    "sale_dtime": "20260602165154",
+    "cash_remnant": 0.0,
+    "card_amt": 0.0,
+    "sale_vat": 0.0,
+    "sale_tot": 460000.0,
+    "sale_amt": 460000.0,
+    "dc_amt": 0.0
+  },
+  {
+    "sale_date": "20260602",
+    "ms_no": "NC0003",
+    "pos_no": "01",
+    "bill_no": "0003",
+    "sale_fg": "1",
+    "sale_dtime": "20260602165154",
+    "cash_remnant": 0.0,
+    "card_amt": 0.0,
+    "sale_vat": 0.0,
+    "sale_tot": 460000.0,
+    "sale_amt": 460000.0,
+    "dc_amt": 0.0
+  },
+  {
+    "sale_date": "20260602",
+    "ms_no": "NC0003",
+    "pos_no": "01",
+    "bill_no": "0004",
+    "sale_fg": "1",
+    "sale_dtime": "20260602165154",
+    "cash_remnant": 0.0,
+    "card_amt": 0.0,
+    "sale_vat": 0.0,
+    "sale_tot": 460000.0,
+    "sale_amt": 460000.0,
+    "dc_amt": 0.0
+  }
+]
