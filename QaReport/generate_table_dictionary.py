@@ -406,6 +406,17 @@ def main():
     
     html_content = get_html_template(table_list)
     
+    # Load table_memos.json content to embed directly inside HTML
+    raw_memos_str = "{}"
+    if os.path.exists(memo_path):
+        try:
+            with open(memo_path, "r", encoding="utf-8") as f:
+                raw_memos_str = json.dumps(json.load(f), ensure_ascii=False)
+        except Exception as e:
+            print("Failed to embed memos:", e)
+            
+    html_content = html_content.replace("/*EMBEDDED_MEMOS_PLACEHOLDER*/", raw_memos_str)
+    
     output_path = r"D:\hmTest\backoffice\QaReport\hms_db_dictionary.html"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
@@ -1189,7 +1200,9 @@ def get_html_template(table_list):
   <h1>HMS 데이터베이스 테이블 명세서 (hmsfns 스키마)</h1>
   <div style="display: flex; align-items: center; gap: 16px;">
     <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: white;">
-      <span>저장 파일명:</span>
+      <span>경로:</span>
+      <input type="text" id="export-filepath" value="D:\\hmTest\\backoffice\\QaReport" style="padding: 4px 8px; font-size: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); outline: none; width: 220px; background: rgba(255,255,255,0.1); color: white;">
+      <span>파일명:</span>
       <input type="text" id="export-filename" value="table_memos.json" style="padding: 4px 8px; font-size: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); outline: none; width: 150px; background: rgba(255,255,255,0.1); color: white;">
     </div>
     <button onclick="exportMemos()" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s; font-family: inherit;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">사용자 메모 백업 (JSON)</button>
@@ -2810,8 +2823,118 @@ function exportMemos() {{
   URL.revokeObjectURL(url);
 }}
 
+const EMBEDDED_MEMOS = /*EMBEDDED_MEMOS_PLACEHOLDER*/;
+
 function importMemos() {{
-  document.getElementById("import-memos-file").click();
+  const dirPath = document.getElementById("export-filepath").value.trim();
+  let rawFileName = document.getElementById("export-filename").value.trim();
+  
+  if (!rawFileName) {{
+    if (confirm("파일명이 비어 있습니다. 기본 파일명(table_memos.json)으로 복원을 진행하시겠습니까?")) {{
+      rawFileName = "table_memos.json";
+      document.getElementById("export-filename").value = "table_memos.json";
+    }} else {{
+      return;
+    }}
+  }}
+  const fileName = rawFileName;
+  
+  let fullPath = dirPath;
+  if (fullPath && !fullPath.endsWith("\\\\") && !fullPath.endsWith("/")) {{
+    fullPath += (fullPath.indexOf("/") !== -1) ? "/" : "\\\\";
+  }}
+  fullPath += fileName;
+  
+  // 1. 만약 입력된 경로가 로컬 백업 기본 경로와 같으면 Fetch 없이 내장된 데이터를 이용해 복원
+  const defaultPath = "D:/hmTest/backoffice/QaReport/table_memos.json";
+  const normalizedFull = fullPath.toLowerCase().split("\\\\").join("/");
+  const normalizedDefault = defaultPath.toLowerCase().split("\\\\").join("/");
+  
+  if (normalizedFull === normalizedDefault && typeof EMBEDDED_MEMOS !== "undefined" && EMBEDDED_MEMOS && EMBEDDED_MEMOS.tables) {{
+    console.log("로컬 보안 정책 우회: 내장된 메모 데이터를 로드하여 복원을 처리합니다.");
+    executeImport(EMBEDDED_MEMOS);
+    return;
+  }}
+  
+  // 2. 다른 경로일 경우 Fetch 시도
+  let targetUrl = fullPath;
+  if (/^[a-zA-Z]:/.test(targetUrl)) {{
+    targetUrl = "file:///" + targetUrl.split("\\\\").join("/");
+  }} else if (!targetUrl.startsWith("file://") && !targetUrl.startsWith("http")) {{
+    targetUrl = "./" + targetUrl;
+  }}
+  
+  fetch(targetUrl)
+    .then(response => {{
+      if (!response.ok) {{
+        throw new Error("파일 읽기 실패 (HTTP status " + response.status + ")");
+      }}
+      return response.json();
+    }})
+    .then(data => {{
+      executeImport(data);
+    }})
+    .catch(err => {{
+      console.warn("자동 복원 실패. 파일 선택 창을 통해 복원을 진행합니다.", err);
+      if (confirm("경로에서 직접 복원에 실패했습니다: " + fullPath + ". 수동 파일 선택 창을 띄워 복원하시겠습니까?")) {{
+        document.getElementById("import-memos-file").click();
+      }}
+    }});
+}}
+
+function executeImport(data) {{
+  if (!data || !data.tables) {{
+    alert("올바른 DB 명세 JSON 형식이 아닙니다.");
+    return;
+  }}
+  let importCount = 0;
+  if (data.sortQueue) {{
+    localStorage.setItem("sortQueue", JSON.stringify(data.sortQueue));
+  }}
+  Object.keys(data.tables).forEach(tname => {{
+    const t = data.tables[tname];
+    if (t.memo !== undefined) {{
+      localStorage.setItem("memo:table:" + tname, t.memo);
+      importCount++;
+    }}
+    if (t.memo_c !== undefined) {{
+      localStorage.setItem("memo:c:table:" + tname, t.memo_c);
+    }}
+    if (t.memo_u !== undefined) {{
+      localStorage.setItem("memo:u:table:" + tname, t.memo_u);
+    }}
+    if (t.memo_d !== undefined) {{
+      localStorage.setItem("memo:d:table:" + tname, t.memo_d);
+    }}
+    if (t.memo_r !== undefined) {{
+      localStorage.setItem("memo:r:table:" + tname, t.memo_r);
+    }}
+    if (t.starred !== undefined) {{
+      localStorage.setItem("star:table:" + tname, t.starred ? "Y" : "N");
+    }}
+    if (t.color !== undefined) {{
+      localStorage.setItem("color:table:" + tname, t.color);
+    }}
+    if (t.sortOrder !== undefined) {{
+      localStorage.setItem("sortOrder:table:" + tname, t.sortOrder.toString());
+    }}
+    if (t.related_tables !== undefined) {{
+      localStorage.setItem("relation:table:" + tname, JSON.stringify(t.related_tables));
+    }}
+    if (t.columns) {{
+      Object.keys(t.columns).forEach(cname => {{
+        const col = t.columns[cname];
+        if (col.custom_memo !== undefined) {{
+          localStorage.setItem("memo:column:" + tname + ":" + cname, col.custom_memo);
+        }}
+        if (col.manual_guide !== undefined) {{
+          localStorage.setItem("memo:guide:" + tname + ":" + cname, col.manual_guide);
+        }}
+      }});
+    }}
+  }});
+  alert("성공적으로 " + importCount + "개 테이블의 메모를 복원했습니다.");
+  location.reload();
 }}
 
 function clearLocalMemos() {{
