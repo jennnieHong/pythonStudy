@@ -238,6 +238,7 @@ if __name__ == "__main__":
 * **[Python 엑셀(Excel) 핸들링 5분 완성 실습북 (Hands-on Cookbook)](./Python_Excel_HandsOn_Cookbook.md)**
 * **[파이썬 엑셀 데이터 가공 및 변환 10단계 마스터 실습북 (Hands-on Cookbook)](./Python_Excel_Data_Cleansing_Cookbook.md)**
 * **[터미널 및 파이썬 파일 경로(Path) 규칙 완벽 가이드](./Terminal_And_Python_Path_Guide.md)**
+* **[HMS 데이터베이스 명세서 사용자 메모 관리 가이드](./hms_db_dictionary_guide.md)**
 
 
 
