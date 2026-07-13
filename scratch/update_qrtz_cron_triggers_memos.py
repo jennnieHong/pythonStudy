@@ -1,0 +1,66 @@
+import json
+import os
+import sys
+
+def update_memos():
+    path = r'd:\hmTest\backoffice\QaReport\table_memos.json'
+    
+    # 1. Load existing data
+    if not os.path.exists(path):
+        print(f"File not found: {path}")
+        return
+        
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except Exception as e:
+        print(f"Error loading JSON: {e}")
+        return
+        
+    tables = data.get("tables", {})
+    if "qrtz_cron_triggers" not in tables:
+        print("qrtz_cron_triggers key not found in tables. Initializing...")
+        tables["qrtz_cron_triggers"] = {
+            "memo": "Cron 표현식 기반 트리거 상세 테이블입니다. (Quartz Cron Triggers)",
+            "starred": False,
+            "color": "none",
+            "columns": {},
+            "memo_c": "Quartz 스케줄러 라이브러리가 크론 표현식을 주기로 갖는 트리거를 생성하여 데이터베이스에 등록할 때 자동 생성됩니다.",
+            "memo_u": "웹 백오피스 스케줄러 관리 화면이나 배치 데몬 스레드에서 해당 트리거의 크론 주기(CRON_EXPRESSION)를 수정할 시 자동으로 업데이트됩니다.",
+            "memo_d": "해당 배치 스케줄러 트리거 또는 스케줄링 잡이 삭제(Hard Delete)될 때 함께 물리 삭제됩니다.",
+            "memo_r": "Quartz 엔진 내부에서 트리거의 다음 가동 예정 시간(NEXT_FIRE_TIME)을 계산하기 위해 크론 주기 설정을 바인딩할 때 조회됩니다."
+        }
+        
+    qrtz_cron_triggers = tables["qrtz_cron_triggers"]
+    
+    # Add/Update related_tables with all verified related tables in Quartz Scheduler standard schema
+    qrtz_cron_triggers["related_tables"] = [
+        {
+            "table_name": "qrtz_triggers",
+            "description": "[스케줄러 트리거 기본] QRTZ_CRON_TRIGGERS.SCHED_NAME = QRTZ_TRIGGERS.SCHED_NAME AND QRTZ_CRON_TRIGGERS.TRIGGER_NAME = QRTZ_TRIGGERS.TRIGGER_NAME AND QRTZ_CRON_TRIGGERS.TRIGGER_GROUP = QRTZ_TRIGGERS.TRIGGER_GROUP 조인을 통해 트리거 마스터 설정과 세부 크론 표현식 설정 명세를 1:1 관계로 연결합니다."
+        },
+        {
+            "table_name": "qrtz_job_details",
+            "description": "[쿼츠 배치 작업 상세] 트리거가 최종적으로 실행할 타깃 Quartz Job 명세 정보를 대조하기 위해 QRTZ_TRIGGERS 마스터 조인을 거쳐 연계됩니다."
+        }
+    ]
+    
+    # 3. Save back
+    try:
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        print("Successfully updated table_memos.json with qrtz_cron_triggers details!")
+        
+        # Automatically run generate_table_dictionary.py to compile HTML
+        gen_script = r"D:\hmTest\backoffice\QaReport\generate_table_dictionary.py"
+        if os.path.exists(gen_script):
+            print("Auto-running generate_table_dictionary.py to rebuild HTML...")
+            os.system(f'python "{gen_script}"')
+            print("Successfully regenerated hms_db_dictionary.html!")
+        else:
+            print(f"Generator script not found: {gen_script}")
+    except Exception as e:
+        print(f"Error saving JSON or generating HTML: {e}")
+
+if __name__ == '__main__':
+    update_memos()
