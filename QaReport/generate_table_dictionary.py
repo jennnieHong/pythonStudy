@@ -1840,6 +1840,14 @@ function selectTable(tbl, shouldScroll = true, openDrawerFlag = false) {{
       if (!allTableGuides.includes(g)) allTableGuides.push(g);
     }});
   }}
+  // Sort guides: starred first, then alphabetically
+  allTableGuides.sort((a, b) => {{
+    const aStarred = localStorage.getItem("star:guide:" + a) === "true";
+    const bStarred = localStorage.getItem("star:guide:" + b) === "true";
+    if (aStarred && !bStarred) return -1;
+    if (!aStarred && bStarred) return 1;
+    return a.localeCompare(b);
+  }});
 
   const tableGuideBadges = allTableGuides.length
     ? allTableGuides.map(g => {{
@@ -1922,23 +1930,32 @@ function selectTable(tbl, shouldScroll = true, openDrawerFlag = false) {{
     ? allTableGuides.map(g => {{
         const cleanName = g.replace("_QaReport.md", "").replace("_DataInput.md", "").replace("_DataFlow_Guide.md", "").replace(".md", "");
         const isManual = manualGuides.includes(g);
+        const isGuideStarred = localStorage.getItem("star:guide:" + g) === "true";
+        const guideDesc = localStorage.getItem("desc:guide:" + g) || "";
         return `
-          <div class="guide-card">
+          <div class="guide-card" style="position: relative;">
             <div style="display: flex; justify-content: space-between; align-items: start; gap: 12px; width: 100%;">
-              <div style="display: flex; align-items: start; gap: 12px; min-width: 0;">
-                <span style="font-size: 24px; line-height: 1;">📄</span>
-                <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+              <div style="display: flex; align-items: start; gap: 12px; min-width: 0; width: 100%;">
+                <button onclick="toggleGuideStar('${{g}}')" style="background: none; border: none; font-size: 18px; color: ${{isGuideStarred ? '#f59e0b' : '#cbd5e1'}}; cursor: pointer; padding: 0; margin-top: 2px;" title="중요 가이드 즐겨찾기">
+                  ${{isGuideStarred ? '★' : '☆'}}
+                </button>
+                <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1;">
                   <span style="font-weight: 700; color: var(--text-main); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${{g}}">${{cleanName}}</span>
                   <span style="font-size: 11.5px; color: var(--text-muted); font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${{g}}</span>
                 </div>
               </div>
               ${{isManual ? `
-                <button onclick="removeTableGuide('${{tbl.table_name}}', '${{g}}')" style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; border-radius: 4px; transition: all 0.15s ease;" title="연관 가이드 링크 제거" onmouseover="this.style.backgroundColor='#fee2e2'" onmouseout="this.style.backgroundColor='transparent'">
+                <button onclick="removeTableGuide('${{tbl.table_name}}', '${{g}}')" style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; border-radius: 4px; transition: all 0.15s ease;" title="연관 가이드 링크 제거" onmouseover="this.style.backgroundColor='#fee2e2'" onmouseout="this.style.backgroundColor='transparent'">
                   제거
                 </button>
               ` : ''}}
             </div>
-            <div style="display: flex; justify-content: flex-end; border-top: 1px solid #f1f5f9; padding-top: 12px; margin-top: 4px;">
+            
+            <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 4px;">
+              <textarea onchange="updateGuideDesc('${{g}}', this.value)" style="width: 100%; min-height: 50px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-family: inherit; line-height: 1.4; resize: vertical; outline: none; background: #fafafa; box-sizing: border-box;" placeholder="가이드에 대한 간단한 설명을 입력하세요..." onfocus="this.style.border='1px solid var(--primary-accent)'; this.style.background='white';" onblur="this.style.border='1px solid var(--border)'; this.style.background='#fafafa';">${{escHtml(guideDesc)}}</textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; border-top: 1px solid #f1f5f9; padding-top: 12px; margin-top: 10px;">
               <a href="file:///D:/hmTest/backoffice/QaReport/${{g}}" target="_blank" class="guide-card-btn">
                 가이드 열기
               </a>
@@ -2478,6 +2495,25 @@ function removeTableGuide(tableName, guideName) {{
 }}
 window.removeTableGuide = removeTableGuide;
 
+function toggleGuideStar(guideName) {{
+  const key = "star:guide:" + guideName;
+  const current = localStorage.getItem(key) === "true";
+  localStorage.setItem(key, !current ? "true" : "false");
+  selectTable(currentTable, false);
+}}
+window.toggleGuideStar = toggleGuideStar;
+
+function updateGuideDesc(guideName, desc) {{
+  const key = "desc:guide:" + guideName;
+  const val = desc.trim();
+  if (val) {{
+    localStorage.setItem(key, val);
+  }} else {{
+    localStorage.removeItem(key);
+  }}
+}}
+window.updateGuideDesc = updateGuideDesc;
+
 function openDrawer(tbl) {{
   if (!tbl) return;
   
@@ -2799,6 +2835,23 @@ function exportMemos() {{
       }}
     }}
   }}
+
+  // Gather guide configurations
+  memoData.guides = {{}};
+  for (let i = 0; i < localStorage.length; i++) {{
+    const key = localStorage.key(i);
+    if (key.startsWith("star:guide:")) {{
+      const gname = key.replace("star:guide:", "");
+      const val = localStorage.getItem(key) === "true";
+      if (!memoData.guides[gname]) memoData.guides[gname] = {{}};
+      memoData.guides[gname].starred = val;
+    }} else if (key.startsWith("desc:guide:")) {{
+      const gname = key.replace("desc:guide:", "");
+      const val = localStorage.getItem(key);
+      if (!memoData.guides[gname]) memoData.guides[gname] = {{}};
+      memoData.guides[gname].description = val;
+    }}
+  }}
   
   // Clean up empty tables
   Object.keys(memoData.tables).forEach(tname => {{
@@ -2933,6 +2986,19 @@ function executeImport(data) {{
       }});
     }}
   }});
+
+  if (data.guides) {{
+    Object.keys(data.guides).forEach(gname => {{
+      const g = data.guides[gname];
+      if (g.starred !== undefined) {{
+        localStorage.setItem("star:guide:" + gname, g.starred ? "true" : "false");
+      }}
+      if (g.description !== undefined) {{
+        localStorage.setItem("desc:guide:" + gname, g.description);
+      }}
+    }});
+  }}
+  
   alert("성공적으로 " + importCount + "개 테이블의 메모를 복원했습니다.");
   location.reload();
 }}
@@ -2942,7 +3008,7 @@ function clearLocalMemos() {{
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {{
       const key = localStorage.key(i);
-      if (key.startsWith("memo:") || key.startsWith("star:") || key.startsWith("color:") || key.startsWith("sortOrder:") || key.startsWith("guide:") || key === "sortQueue") {{
+      if (key.startsWith("memo:") || key.startsWith("star:") || key.startsWith("color:") || key.startsWith("sortOrder:") || key.startsWith("guide:") || key.startsWith("desc:") || key === "sortQueue") {{
         keysToRemove.push(key);
       }}
     }}
@@ -3035,6 +3101,17 @@ function handleImportFile(event) {{
           }});
         }}
       }});
+      if (data.guides) {{
+        Object.keys(data.guides).forEach(gname => {{
+          const g = data.guides[gname];
+          if (g.starred !== undefined) {{
+            localStorage.setItem("star:guide:" + gname, g.starred ? "true" : "false");
+          }}
+          if (g.description !== undefined) {{
+            localStorage.setItem("desc:guide:" + gname, g.description);
+          }}
+        }});
+      }}
       if (data.sortQueue && data.sortQueue.length > 0) {{
         localStorage.setItem("sortChoice", data.sortQueue[0]);
         const selectEl = document.getElementById("sort-choice");
