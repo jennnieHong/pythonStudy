@@ -1329,7 +1329,12 @@ def get_html_template(table_list):
 const TABLES = {table_list_json};
 
 TABLES.forEach(tbl => {{
-  tbl.starred = localStorage.getItem("star:table:" + tbl.table_name) === "true" || tbl.starred || false;
+  const localStarred = localStorage.getItem("star:table:" + tbl.table_name);
+  if (localStarred !== null && localStarred !== "") {{
+    tbl.starred = localStarred === "true";
+  }} else {{
+    tbl.starred = tbl.starred || false;
+  }}
   tbl.color = localStorage.getItem("color:table:" + tbl.table_name) || tbl.color || "none";
   const localSortOrder = localStorage.getItem("sortOrder:table:" + tbl.table_name);
   if (localSortOrder !== null && localSortOrder !== "") {{
@@ -1976,17 +1981,20 @@ function selectTable(tbl, shouldScroll = true, openDrawerFlag = false) {{
   if (relatedTablesList.length === 0) {{
     relatedRowsHtml = `
       <tr>
-        <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 32px; background: white;">
+        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 32px; background: white;">
           등록된 관련 테이블이 없습니다. 상단 탭을 이용하여 관련 테이블을 추가해 보세요.
         </td>
       </tr>
     `;
   }} else {{
-    relatedRowsHtml = relatedTablesList.map(rel => {{
+    relatedRowsHtml = relatedTablesList.map((rel, index) => {{
       const relTblObj = TABLES.find(t => t.table_name === rel.table_name);
       const dbComment = relTblObj ? (relTblObj.comment || '') : '';
       return `
         <tr style="border-bottom: 1px solid var(--border); background: white;">
+          <td style="padding: 10px 12px; text-align: center; color: var(--text-muted); font-weight: 500;">
+            ${{index + 1}}
+          </td>
           <td style="padding: 10px 12px; font-family: monospace; font-weight: 600;">
             <a href="#" onclick="selectTableByName('${{rel.table_name}}'); return false;" style="color: var(--primary-accent); text-decoration: none;">${{rel.table_name.toUpperCase()}}</a>
           </td>
@@ -2115,9 +2123,10 @@ function selectTable(tbl, shouldScroll = true, openDrawerFlag = false) {{
           <table class="grid-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; border: 1px solid var(--border);">
             <thead>
               <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
-                <th style="padding: 10px 12px; font-weight: 600; width: 25%;">연관 테이블명</th>
-                <th style="padding: 10px 12px; font-weight: 600; width: 35%;">테이블 설명 (DB)</th>
-                <th style="padding: 10px 12px; font-weight: 600; width: 30%;">관계 설명 배 메모 (수정은 가능)</th>
+                <th style="padding: 10px 12px; font-weight: 600; width: 6%; text-align: center;">No.</th>
+                <th style="padding: 10px 12px; font-weight: 600; width: 24%;">연관 테이블명</th>
+                <th style="padding: 10px 12px; font-weight: 600; width: 30%;">테이블 설명 (DB)</th>
+                <th style="padding: 10px 12px; font-weight: 600; width: 30%;">관계 설명 및 메모 (수정 가능)</th>
                 <th style="padding: 10px 12px; font-weight: 600; width: 10%; text-align: center;">작업</th>
               </tr>
             </thead>

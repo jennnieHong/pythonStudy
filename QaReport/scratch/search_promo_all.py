@@ -1,0 +1,21 @@
+import glob
+
+files = (
+    glob.glob(r"d:\workspace\hmotors\workspace_hms20260326\**\*.java", recursive=True) +
+    glob.glob(r"d:\workspace\hmotors\workspace_hms20260326\**\*.jsp", recursive=True)
+)
+
+found = []
+for path in files:
+    if "QaReport" in path or "scratch" in path:
+        continue
+    try:
+        with open(path, "r", encoding="utf-8", errors="ignore") as f:
+            content = f.read()
+        if "MPROMATB" in content.upper() or "SSPROMTB" in content.upper():
+            found.append(path.replace('d:\\workspace\\hmotors\\workspace_hms20260326\\', ''))
+    except Exception as e:
+        pass
+
+for p in found[:30]:
+    print(p)
